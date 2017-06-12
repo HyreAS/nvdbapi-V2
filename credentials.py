@@ -12,10 +12,12 @@ import json
 def credentials():
     """Returns login info: { "yoursystem" : { "user" : "foo", "pw" : "baa" }}""" 
 
-    mycredfile = '../credentials.json' 
-    cred = {  "yoursystem" : { 
-                              "user" : "foo", 
-                              "pw" : "baa"
+    mycredfile = 'credentials.json' 
+    cred = {  "localpostgis" : { 
+                                "host": "localhost",
+                              "user" : "postgres", 
+                              "pw" : "mysecretpassword",
+                              "database": "db_name"
                           }
                 }
     try: 
