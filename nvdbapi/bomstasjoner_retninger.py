@@ -32,12 +32,11 @@ visveginfo-tjenesten. Spesifikt så:
 @author: Jan Kristian Jensen
 """
 
-import nvdbapi 
+from nvdbapi import nvdbapi
 import shapely.wkt
 
 import xmltodict
 import requests
-from credentials import credentials # Local credentials 
 import psycopg2
 
 import sqlite3
@@ -156,7 +155,7 @@ def enkelretning( bom):
         innkr = '0' 
         
     felt = felt2retning( bom['felt'])
-    veg = felt2retning( bom['muligeFelt'])
+    veg = felt2retning( bom['muligefelt'])
     
     return (innkr, felt, veg)
 
@@ -243,114 +242,75 @@ def lagre2sqlite( data ):
     
     curs.execute( 'DROP TABLE IF EXISTS bomstasjoner' )
 
-    curs.execute( 'CREATE TABLE bomstasjoner(geometri string, bid integer PRIMARY KEY NOT NULL, navn text, anlId integer, bomId integer, ekteretning text, felt text, innkrevingsretning text, vegnettretn real, metreringretn real, kompassretn real, muligeFelt text, status text, veg text, veglenke integer, veglenkepos double precision, takst_liten numeric, takst_stor numeric, bomtype text, tidsdiff text  )' )
+    curs.execute( 'CREATE TABLE bomstasjoner(geometri string, bid integer PRIMARY KEY NOT NULL, navn text, anlId integer, bomId integer, ekteretning text, felt text, innkrevingsretning text, vegnettretn real, metreringretn real, kompassretn real, muligefelt text, status text, veg text, veglenke integer, veglenkepos double precision, takst_liten numeric, takst_stor numeric, bomtype text, tidsdiff text  )' )
     conn.commit() 
     
     for bom in data: 
-        #curs.execute( 'INSERT INTO bomstasjoner( geom, id, Navn, anlId, bomId, ekteretning, felt, innkrevingsretning, kompassretn, muligeFelt, status, veg, veglenke, veglenkepos )'
-         #                'VALUES( ST_SetSRID(%(geom)s::geometry, %(srid)s), %(id)s, %(Navn)s, %(anlId)s, %(bomId)s, %(ekteretning)s, %(felt), %(innkrevingsretning), %(kompassretn), %(muligeFelt), %(status), %(veg), %(veglenke), %(veglenkepos) )' , 
+        #curs.execute( 'INSERT INTO bomstasjoner( geom, id, Navn, anlId, bomId, ekteretning, felt, innkrevingsretning, kompassretn, muligefelt, status, veg, veglenke, veglenkepos )'
+         #                'VALUES( ST_SetSRID(%(geom)s::geometry, %(srid)s), %(id)s, %(Navn)s, %(anlId)s, %(bomId)s, %(ekteretning)s, %(felt), %(innkrevingsretning), %(kompassretn), %(muligefelt), %(status), %(veg), %(veglenke), %(veglenkepos) )' , 
           #               bom) 
         # conn.commit()
         curs.execute( 'INSERT INTO bomstasjoner( geometri, bid, navn, anlid, bomid, ekteretning, felt, innkrevingsretning, vegnettretn, metreringretn, kompassretn, muligefelt, status, veg, veglenke, veglenkepos, takst_liten, takst_stor, bomtype, tidsdiff)'
-                         'VALUES( :geometri, :id, :Navn, :anlId, :bomId, :ekteretning, :felt, :innkrevingsretning, :vegnettretn, :metreringretn, :kompassretn, :muligeFelt, :status, :veg, :veglenke, :veglenkepos, :takst_liten, :takst_stor, :bomtype, :tidsdiff )' , 
+                         'VALUES( :geometri, :id, :Navn, :anlId, :bomId, :ekteretning, :felt, :innkrevingsretning, :vegnettretn, :metreringretn, :kompassretn, :muligefelt, :status, :veg, :veglenke, :veglenkepos, :takst_liten, :takst_stor, :bomtype, :tidsdiff )' , 
                          bom) 
         conn.commit()
         
 
+def get_tollroads():
+    data = []
+    bomstasjoner = nvdbapi.nvdbFagdata(45)
+    # Henter bomstasjoner med gyldige verdier for bomst.id og bompengeanlegg.id
+    # bomstasjoner.addfilter_egenskap( '9596!=null AND 9595!=null' )
 
-def lagre2postgis( data, foupostgis=False ):
-    """Lagrer til lokal postgis installasjon"""
-    
-    cred = credentials()
-    # mycred = cred['localpostgis']
-    if foupostgis: 
-        mycred = cred['foupostgis']
-    else: 
-        mycred = cred['localpostgis']
-    
-    conn = psycopg2.connect(database=mycred['database'], 
-                            user=mycred['user'] , 
-                        password=mycred['pw'], 
-                        host=mycred['host'])
-    curs = conn.cursor()
-    
-    curs.execute( 'DROP TABLE IF EXISTS bomstasjoner' )
+    # bomstasjoner.addfilter_egenskap( '9595=15 AND 9596=8')
 
-    curs.execute( 'CREATE TABLE bomstasjoner(geom geography, id integer PRIMARY KEY NOT NULL, navn text, anlId integer, bomId integer, ekteretning text, felt text, innkrevingsretning text, vegnettretn real, metreringretn real, kompassretn real, muligeFelt text, status text, veg text, veglenke integer, veglenkepos double precision, takst_liten numeric, takst_stor numeric, bomtype text, tidsdiff text, created_at timestamp with time zone, updated_at timestamp with time zone  )' )
-    conn.commit() 
-    
-    for bom in data: 
-        #curs.execute( 'INSERT INTO bomstasjoner( geom, id, Navn, anlId, bomId, ekteretning, felt, innkrevingsretning, kompassretn, muligeFelt, status, veg, veglenke, veglenkepos )'
-         #                'VALUES( ST_SetSRID(%(geom)s::geometry, %(srid)s), %(id)s, %(Navn)s, %(anlId)s, %(bomId)s, %(ekteretning)s, %(felt), %(innkrevingsretning), %(kompassretn), %(muligeFelt), %(status), %(veg), %(veglenke), %(veglenkepos) )' , 
-          #               bom) 
-        # conn.commit()
-        curs.execute( 'INSERT INTO bomstasjoner( geom, id, navn, anlid, bomid, ekteretning, felt, innkrevingsretning, vegnettretn, metreringretn, kompassretn, muligefelt, status, veg, veglenke, veglenkepos, takst_liten, takst_stor, bomtype, tidsdiff)'
-                         'VALUES( ST_SetSRID(ST_MakePoint(%(geo_lng)s, %(geo_lat)s), 4326), %(id)s, %(Navn)s, %(anlId)s, %(bomId)s, %(ekteretning)s, %(felt)s, %(innkrevingsretning)s, %(vegnettretn)s, %(metreringretn)s, %(kompassretn)s, %(muligeFelt)s, %(status)s, %(veg)s, %(veglenke)s, %(veglenkepos)s, %(takst_liten)s, %(takst_stor)s, %(bomtype)s, %(tidsdiff)s )' , 
-                         bom) 
-        conn.commit()
+    inProj = Proj(init='epsg:32633')
+    outProj = Proj(init='epsg:4326')
+
+    print( [ 'Filtre: ', bomstasjoner.allfilters()] )
+    bomst = bomstasjoner.nesteNvdbFagObjekt()
+
+    while bomst: 
+
+        print( bomst.egenskapverdi('Navn bomstasjon'))
+        # print(vars(bomst));
+        tmp = { 'felt' : ''}
         
+        tmp['id'] = bomst.id 
+        tmp['navn'] = bomst.egenskapverdi('Navn bomstasjon')
+        tmp['bomid'] = bomst.egenskapverdi(9595)
+        tmp['anlid'] = bomst.egenskapverdi(9596)
+        tmp['innkrevingsretning'] = bomst.egenskapverdi( 9414, empty='')
+        tmp['veg'] = bomst.lokasjon['vegreferanser'][0]['kortform']
+        tmp['veglenke'] = bomst.lokasjon['stedfestinger'][0]['veglenkeid']
+        tmp['veglenkepos'] = bomst.lokasjon['stedfestinger'][0]['posisjon']
+        if 'felt' in bomst.lokasjon['stedfestinger'][0]: 
+            tmp['felt'] = bomst.lokasjon['stedfestinger'][0]['felt']
+        tmp['geom'] = shapely.wkt.loads( bomst.lokasjon['geometri']['wkt']).wkb_hex
+
+        tmp['bomtype'] = bomst.egenskapverdi(9390);
+        tmp['tidsdiff'] = bomst.egenskapverdi(9409);
+        tmp['takst_liten'] = bomst.egenskapverdi(1820);
+        tmp['takst_stor'] = bomst.egenskapverdi(1819);
+        point = shapely.wkt.loads(bomst.lokasjon['geometri']['wkt']);
+        x2,y2 = transform(inProj,outProj,point.x,point.y)
+        tmp['geometri'] = "{\"lat\":" + str(y2) + ",\"lng\":" + str(x2) + "}";
+        tmp['geom'] = "{\"type\": \"Point\", \"coordinates\":[" + str(x2) + ","+ str(y2) + "]}";
+        tmp['geo_lat'] = str(y2);
+        tmp['geo_lng'] = str(x2);
+
+        tmp['muligefelt'] = hentfelt( tmp['veglenke'], tmp['veglenkepos'])
+        tmp['ekteretning'] = effektivretning( tmp )
+        tmp['srid'] = 25833
         
-### Start her! 
+        tmp['status'] = sjekkretning( tmp )
+        (tmp['vegnettretn'], tmp['metreringretn']) = kompassretning( tmp['veglenke'], tmp['veglenkepos'])
+        
+        if tmp['ekteretning'] == 'mot': 
+            tmp['kompassretn'] = (float(tmp['vegnettretn']) + 180.0) % 360 
+        else: 
+            tmp['kompassretn'] = tmp['vegnettretn']
+        data.append( tmp )
 
-data = []
-bomstasjoner = nvdbapi.nvdbFagdata(45)
-# Henter bomstasjoner med gyldige verdier for bomst.id og bompengeanlegg.id
-# bomstasjoner.addfilter_egenskap( '9596!=null AND 9595!=null' )
-
-# bomstasjoner.addfilter_egenskap( '9595=15 AND 9596=8')
-
-inProj = Proj(init='epsg:32633')
-outProj = Proj(init='epsg:4326')
-
-print( [ 'Filtre: ', bomstasjoner.allfilters()] )
-bomst = bomstasjoner.nesteNvdbFagObjekt()
-
-while bomst: 
-
-    print( bomst.egenskapverdi('Navn bomstasjon'))
-    # print(vars(bomst));
-    tmp = { 'felt' : ''}
-    
-    tmp['id'] = bomst.id 
-    tmp['Navn'] = bomst.egenskapverdi('Navn bomstasjon')
-    tmp['bomId'] = bomst.egenskapverdi(9595)
-    tmp['anlId'] = bomst.egenskapverdi(9596)
-    tmp['innkrevingsretning'] = bomst.egenskapverdi( 9414, empty='')
-    tmp['veg'] = bomst.lokasjon['vegreferanser'][0]['kortform']
-    tmp['veglenke'] = bomst.lokasjon['stedfestinger'][0]['veglenkeid']
-    tmp['veglenkepos'] = bomst.lokasjon['stedfestinger'][0]['posisjon']
-    if 'felt' in bomst.lokasjon['stedfestinger'][0]: 
-        tmp['felt'] = bomst.lokasjon['stedfestinger'][0]['felt']
-    tmp['geom'] = shapely.wkt.loads( bomst.lokasjon['geometri']['wkt']).wkb_hex
-
-    tmp['bomtype'] = bomst.egenskapverdi(9390);
-    tmp['tidsdiff'] = bomst.egenskapverdi(9409);
-    tmp['takst_liten'] = bomst.egenskapverdi(1820);
-    tmp['takst_stor'] = bomst.egenskapverdi(1819);
-    point = shapely.wkt.loads(bomst.lokasjon['geometri']['wkt']);
-    x2,y2 = transform(inProj,outProj,point.x,point.y)
-    tmp['geometri'] = "{\"lat\":" + str(y2) + ",\"lng\":" + str(x2) + "}";
-    tmp['geo_lat'] = str(y2);
-    tmp['geo_lng'] = str(x2);
-
-    tmp['muligeFelt'] = hentfelt( tmp['veglenke'], tmp['veglenkepos'])
-    tmp['ekteretning'] = effektivretning( tmp )
-    tmp['srid'] = 25833
-    
-    tmp['status'] = sjekkretning( tmp )
-    (tmp['vegnettretn'], tmp['metreringretn']) = kompassretning( tmp['veglenke'], tmp['veglenkepos'])
-    
-    if tmp['ekteretning'] == 'mot': 
-        tmp['kompassretn'] = (float(tmp['vegnettretn']) + 180.0) % 360 
-    else: 
-        tmp['kompassretn'] = tmp['vegnettretn']
-    data.append( tmp )
-    # print (tmp)
-
-    # tbomst = bomst
-    # bomst = False
-    bomst = bomstasjoner.nesteNvdbFagObjekt() 
-    
-    
-lagre2postgis( data)
-# lagre2sqlite(data)
+        bomst = bomstasjoner.nesteNvdbFagObjekt() 
+    return data
