@@ -272,45 +272,48 @@ def get_tollroads():
 
     while bomst: 
 
-        print( bomst.egenskapverdi('Navn bomstasjon'))
-        # print(vars(bomst));
-        tmp = { 'felt' : ''}
-        
-        tmp['id'] = bomst.id 
-        tmp['navn'] = bomst.egenskapverdi('Navn bomstasjon')
-        tmp['bomid'] = bomst.egenskapverdi(9595)
-        tmp['anlid'] = bomst.egenskapverdi(9596)
-        tmp['innkrevingsretning'] = bomst.egenskapverdi( 9414, empty='')
-        tmp['veg'] = bomst.lokasjon['vegreferanser'][0]['kortform']
-        tmp['veglenke'] = bomst.lokasjon['stedfestinger'][0]['veglenkeid']
-        tmp['veglenkepos'] = bomst.lokasjon['stedfestinger'][0]['posisjon']
-        if 'felt' in bomst.lokasjon['stedfestinger'][0]: 
-            tmp['felt'] = bomst.lokasjon['stedfestinger'][0]['felt']
-        tmp['geom'] = shapely.wkt.loads( bomst.lokasjon['geometri']['wkt']).wkb_hex
+        try:
+            print( bomst.egenskapverdi('Navn bomstasjon'))
+            # print(vars(bomst));
+            tmp = { 'felt' : ''}
+            
+            tmp['boothid'] = bomst.id 
+            tmp['navn'] = bomst.egenskapverdi('Navn bomstasjon')
+            tmp['bomid'] = bomst.egenskapverdi(9595)
+            tmp['anlid'] = bomst.egenskapverdi(9596)
+            tmp['innkrevingsretning'] = bomst.egenskapverdi( 9414, empty='')
+            tmp['veg'] = bomst.lokasjon['vegreferanser'][0]['kortform']
+            tmp['veglenke'] = bomst.lokasjon['stedfestinger'][0]['veglenkeid']
+            tmp['veglenkepos'] = bomst.lokasjon['stedfestinger'][0]['posisjon']
+            if 'felt' in bomst.lokasjon['stedfestinger'][0]: 
+                tmp['felt'] = bomst.lokasjon['stedfestinger'][0]['felt']
+            tmp['geom'] = shapely.wkt.loads( bomst.lokasjon['geometri']['wkt']).wkb_hex
 
-        tmp['bomtype'] = bomst.egenskapverdi(9390);
-        tmp['tidsdiff'] = bomst.egenskapverdi(9409);
-        tmp['takst_liten'] = bomst.egenskapverdi(1820);
-        tmp['takst_stor'] = bomst.egenskapverdi(1819);
-        point = shapely.wkt.loads(bomst.lokasjon['geometri']['wkt']);
-        x2,y2 = transform(inProj,outProj,point.x,point.y)
-        tmp['geometri'] = "{\"lat\":" + str(y2) + ",\"lng\":" + str(x2) + "}";
-        tmp['geom'] = "{\"type\": \"Point\", \"coordinates\":[" + str(x2) + ","+ str(y2) + "]}";
-        tmp['geo_lat'] = str(y2);
-        tmp['geo_lng'] = str(x2);
+            tmp['bomtype'] = bomst.egenskapverdi(9390);
+            tmp['tidsdiff'] = bomst.egenskapverdi(9409);
+            tmp['takst_liten'] = bomst.egenskapverdi(1820);
+            tmp['takst_stor'] = bomst.egenskapverdi(1819);
+            point = shapely.wkt.loads(bomst.lokasjon['geometri']['wkt']);
+            x2,y2 = transform(inProj,outProj,point.x,point.y)
+            tmp['geometri'] = "{\"lat\":" + str(y2) + ",\"lng\":" + str(x2) + "}";
+            tmp['geom'] = "{\"type\": \"Point\", \"coordinates\":[" + str(x2) + ","+ str(y2) + "]}";
+            tmp['geo_lat'] = str(y2);
+            tmp['geo_lng'] = str(x2);
 
-        tmp['muligefelt'] = hentfelt( tmp['veglenke'], tmp['veglenkepos'])
-        tmp['ekteretning'] = effektivretning( tmp )
-        tmp['srid'] = 25833
-        
-        tmp['status'] = sjekkretning( tmp )
-        (tmp['vegnettretn'], tmp['metreringretn']) = kompassretning( tmp['veglenke'], tmp['veglenkepos'])
-        
-        if tmp['ekteretning'] == 'mot': 
-            tmp['kompassretn'] = (float(tmp['vegnettretn']) + 180.0) % 360 
-        else: 
-            tmp['kompassretn'] = tmp['vegnettretn']
-        data.append( tmp )
+            tmp['muligefelt'] = hentfelt( tmp['veglenke'], tmp['veglenkepos'])
+            tmp['ekteretning'] = effektivretning( tmp )
+            tmp['srid'] = 25833
+            
+            tmp['status'] = sjekkretning( tmp )
+            (tmp['vegnettretn'], tmp['metreringretn']) = kompassretning( tmp['veglenke'], tmp['veglenkepos'])
+            
+            if tmp['ekteretning'] == 'mot': 
+                tmp['kompassretn'] = (float(tmp['vegnettretn']) + 180.0) % 360 
+            else: 
+                tmp['kompassretn'] = tmp['vegnettretn']
+            data.append( tmp )
+        except:
+            print('Skipping', bomst.id, bomst.egenskapverdi('Navn bomstasjon'))
 
         bomst = bomstasjoner.nesteNvdbFagObjekt() 
     return data
