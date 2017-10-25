@@ -4,6 +4,7 @@ import six # python 2 vs 3 compability library
 import json
 import requests
 from warnings import warn
+import os
 #import pdb
 
 # Uncomment to silent those unverified https-request warnings
@@ -85,7 +86,7 @@ class nvdbVegnett:
                                     '\teller: N = nvdbFagData()',
                                     '       N.objektType(45)')))
         if isinstance( self, nvdbFagdata) and not self.antall: 
-            self.statistikk()
+           self.statistikk()
         
         if self.paginering['initielt']: 
         
@@ -139,7 +140,8 @@ class nvdbVegnett:
                                     '\tEks: N = nvdbFagData(45)', 
                                     '\teller: N = nvdbFagData()',
                                     '       N.objektType(45)')))
-        if isinstance( self, nvdbFagdata) and not self.antall: 
+
+        if isinstance( self, nvdbFagdata) and not self.antall:
             self.statistikk()
 
         antObjLokalt = len(self.data['objekter'])
@@ -221,7 +223,7 @@ class nvdbVegnett:
         else:
             return self.geofilter
 
-    def anrope(self, path, parametre=None, debug=False): 
+    def anrope(self, path, parametre=None, debug=False, silent=False): 
     
         if not self.apiurl in path: 
             url = ''.join(( self.apiurl, path)) 
@@ -241,7 +243,8 @@ class nvdbVegnett:
             return r.json()
         
         else:
-            print( 'Http error: '+str(r.status_code) +' '+r.url +
+            if not silent: 
+                print( 'Http error: '+str(r.status_code) +' '+r.url +
                             '\n' + r.text )
             raise ValueError('Http error: '+str(r.status_code) +' '+r.url +
                             '\n' + r.text )
@@ -258,6 +261,11 @@ class nvdbVegnett:
     def update_http_header(self, filename='nvdbapi-clientinfo.json'): 
     
         contactsfile = 'nvdbapi-clientinfo.json'
+        
+        # Tricks for at qgis skal kunne finne klientinfo
+        if 'nvdbapi-dir' in os.environ.keys():
+            contactsfile = os.environ['nvdbapi-dir'] + '/' + contactsfile
+        
         # Http header info
         try: 
             with open(filename) as data_file:    
@@ -692,7 +700,46 @@ class nvdbFagObjekt():
             raise ValueError('Function relasjon: Keyword argument relasjon must be int or string' )
             
             
+def finnid(objektid, kunvegnett=False, kunfagdata=False): 
+    """Henter NVDB objekt (enten veglenke eller fagdata) ut fra objektID.
+    Bruk nøkkelord kunvegnett=True eller kunfagdata=True for å avgrense til 
+    vegnett og/eller fagdata (vi har betydelig overlapp på ID'er mellom vegnett 
+    og fagdata)
+    
+    Fagdata returnerer en DICT
+    Vegnett returnerer en LISTE med alle vegnettselementene for veglenka"""
+    
+    # Dummy objekt for å gjenbruke anrops-funksjonene
+    b = nvdbFagdata(45)
+    res = None
+
+    # Henter fagdata    
+    if kunfagdata or (not kunvegnett): 
+        try:
+            res = b.anrope( 'vegobjekt', parametre = { 'id' : objektid }, silent=True )
+        except ValueError: 
+            pass
+
+        else:
+            # Må hente fagobjektet på ny for å få alle segmenter (inkluder=alle)
+            res = b.anrope( res['href'], parametre = { 'inkluder' : 'alle' } ) 
+
+
+    # Henter vegnett
+    if kunvegnett or (not kunfagdata) or (not res and not kunfagdata): 
+        try: 
+            res = b.anrope( 'vegnett/lenker/' + str(objektid), silent=True)
             
+        except ValueError: 
+            pass
+
+
+    if not res: 
+        print( "Fant intet NVDB objekt eller vegnett med ID = " + str(objektid))
+
+        
+    return res
+    
             
 def merge_dicts(*dict_args):
     """
