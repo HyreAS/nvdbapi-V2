@@ -303,59 +303,62 @@ def get_tollroads():
             },
         ]
         if tmp['tidsdiff'] == 'Ja':
-            tmp['takst'] = [
-                {
-                    'not_under_three_ton': True,
-                    'price': bomst.egenskapverdi(1819),  # Takst stor bil
-                    'range': '00:00-' + bomst.egenskapverdi(9407),  # Rushtid morgen, fra
-                },
-                {
-                    'not_under_three_ton': True,
-                    'price': bomst.egenskapverdi(9411),  # Rushtidstakst stor bil
-                    'range': bomst.egenskapverdi(9407) + '-' + bomst.egenskapverdi(9408),  # Rushtid morgen, til
-                },
-                {
-                    'not_under_three_ton': True,
-                    'price': bomst.egenskapverdi(1819),  # Takst stor bil
-                    'range': bomst.egenskapverdi(9408) + '-' + bomst.egenskapverdi(9405),  # Rushtid ettermiddag, fra
-                },
-                {
-                    'not_under_three_ton': True,
-                    'price': bomst.egenskapverdi(9411),  # Rushtidstakst stor bil
-                    'range': bomst.egenskapverdi(9405) + '-' + bomst.egenskapverdi(9406),  # Rushtid ettermiddag, til
-                },
-                {
-                    'not_over_three_ton': True,
-                    'price': bomst.egenskapverdi(1819),  # Takst stor bil
-                    'range': bomst.egenskapverdi(9406) + '-23:59',  # Rushtid ettermiddag, til
-                },
+            try:
+                tmp['takst'] = [
+                    {
+                        'not_under_three_ton': True,
+                        'price': bomst.egenskapverdi(1819),  # Takst stor bil
+                        'range': '00:00-' + bomst.egenskapverdi(9407),  # Rushtid morgen, fra
+                    },
+                    {
+                        'not_under_three_ton': True,
+                        'price': bomst.egenskapverdi(9411),  # Rushtidstakst stor bil
+                        'range': bomst.egenskapverdi(9407) + '-' + bomst.egenskapverdi(9408),  # Rushtid morgen, til
+                    },
+                    {
+                        'not_under_three_ton': True,
+                        'price': bomst.egenskapverdi(1819),  # Takst stor bil
+                        'range': bomst.egenskapverdi(9408) + '-' + bomst.egenskapverdi(9405),  # Rushtid ettermiddag, fra
+                    },
+                    {
+                        'not_under_three_ton': True,
+                        'price': bomst.egenskapverdi(9411),  # Rushtidstakst stor bil
+                        'range': bomst.egenskapverdi(9405) + '-' + bomst.egenskapverdi(9406),  # Rushtid ettermiddag, til
+                    },
+                    {
+                        'not_under_three_ton': True,
+                        'price': bomst.egenskapverdi(1819),  # Takst stor bil
+                        'range': bomst.egenskapverdi(9406) + '-23:59',  # Rushtid ettermiddag, til
+                    },
+                    {
+                        'not_over_three_ton': True,
+                        'price': bomst.egenskapverdi(1820),  # Takst liten bil
+                        'range': '00:00-' + bomst.egenskapverdi(9407),  # Rushtid morgen, fra
+                    },
+                    {
+                        'not_over_three_ton': True,
+                        'price': bomst.egenskapverdi(9410),  # Rushtidstakst liten bil
+                        'range': bomst.egenskapverdi(9407) + '-' + bomst.egenskapverdi(9408),  # Rushtid morgen, til
+                    },
+                    {
+                        'not_over_three_ton': True,
+                        'price': bomst.egenskapverdi(1820),  # Takst liten bil
+                        'range': bomst.egenskapverdi(9408) + '-' + bomst.egenskapverdi(9405),  # Rushtid ettermiddag, fra
+                    },
+                    {
+                        'not_over_three_ton': True,
+                        'price': bomst.egenskapverdi(9410),  # Rushtidstakst liten bil
+                        'range': bomst.egenskapverdi(9405) + '-' + bomst.egenskapverdi(9406),  # Rushtid ettermiddag, til
+                    },
+                    {
+                        'not_over_three_ton': True,
+                        'price': bomst.egenskapverdi(1820),  # Takst liten bil
+                        'range': bomst.egenskapverdi(9406) + '-23:59',  # Rushtid ettermiddag, til
+                    },
+                ]
+            except TypeError:
+                pass
 
-                {
-                    'not_over_three_ton': True,
-                    'price': bomst.egenskapverdi(1820),  # Takst liten bil
-                    'range': '00:00-' + bomst.egenskapverdi(9407),  # Rushtid morgen, fra
-                },
-                {
-                    'not_over_three_ton': True,
-                    'price': bomst.egenskapverdi(9410),  # Rushtidstakst liten bil
-                    'range': bomst.egenskapverdi(9407) + '-' + bomst.egenskapverdi(9408),  # Rushtid morgen, til
-                },
-                {
-                    'not_over_three_ton': True,
-                    'price': bomst.egenskapverdi(1820),  # Takst liten bil
-                    'range': bomst.egenskapverdi(9408) + '-' + bomst.egenskapverdi(9405),  # Rushtid ettermiddag, fra
-                },
-                {
-                    'not_over_three_ton': True,
-                    'price': bomst.egenskapverdi(9410),  # Rushtidstakst liten bil
-                    'range': bomst.egenskapverdi(9405) + '-' + bomst.egenskapverdi(9406),  # Rushtid ettermiddag, til
-                },
-                {
-                    'not_over_three_ton': True,
-                    'price': bomst.egenskapverdi(1820),  # Takst liten bil
-                    'range': bomst.egenskapverdi(9406) + '-23:59',  # Rushtid ettermiddag, til
-                },
-            ]
         point = shapely.wkt.loads(bomst.lokasjon['geometri']['wkt'])
         x2,y2 = transform(inProj,outProj,point.x,point.y)
         tmp['geometri'] = "{\"lat\":" + str(y2) + ",\"lng\":" + str(x2) + "}"
