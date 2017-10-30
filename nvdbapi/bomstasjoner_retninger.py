@@ -247,8 +247,8 @@ def lagre2sqlite( data ):
 
     for bom in data:
         #curs.execute( 'INSERT INTO bomstasjoner( geom, id, Navn, anlId, bomId, ekteretning, felt, innkrevingsretning, kompassretn, muligefelt, status, veg, veglenke, veglenkepos )'
-         #                'VALUES( ST_SetSRID(%(geom)s::geometry, %(srid)s), %(id)s, %(Navn)s, %(anlId)s, %(bomId)s, %(ekteretning)s, %(felt), %(innkrevingsretning), %(kompassretn), %(muligefelt), %(status), %(veg), %(veglenke), %(veglenkepos) )' ,
-          #               bom)
+        #                'VALUES( ST_SetSRID(%(geom)s::geometry, %(srid)s), %(id)s, %(Navn)s, %(anlId)s, %(bomId)s, %(ekteretning)s, %(felt), %(innkrevingsretning), %(kompassretn), %(muligefelt), %(status), %(veg), %(veglenke), %(veglenkepos) )' ,
+        #               bom)
         # conn.commit()
         curs.execute( 'INSERT INTO bomstasjoner( geometri, bid, navn, anlid, bomid, ekteretning, felt, innkrevingsretning, vegnettretn, metreringretn, kompassretn, muligefelt, status, veg, veglenke, veglenkepos, takst_liten, takst_stor, bomtype, tidsdiff)'
                          'VALUES( :geometri, :id, :Navn, :anlId, :bomId, :ekteretning, :felt, :innkrevingsretning, :vegnettretn, :metreringretn, :kompassretn, :muligefelt, :status, :veg, :veglenke, :veglenkepos, :takst_liten, :takst_stor, :bomtype, :tidsdiff )' ,
@@ -292,12 +292,12 @@ def get_tollroads():
         tmp['tidsdiff'] = bomst.egenskapverdi(9409)
         tmp['takst'] = [
             {
-                'not_under_three_ton': True,
+                'car_type': 'big',
                 'price': bomst.egenskapverdi(1819),  # Takst stor bil
                 'range': '00:00-23:59',
             },
             {
-                'not_over_three_ton': True,
+                'car_type': 'small',
                 'price': bomst.egenskapverdi(1820),  # Takst liten bil
                 'range': '00:00-23:59',
             },
@@ -306,52 +306,52 @@ def get_tollroads():
             try:
                 tmp['takst'] = [
                     {
-                        'not_under_three_ton': True,
+                        'car_type': 'big',
                         'price': bomst.egenskapverdi(1819),  # Takst stor bil
                         'range': '00:00-' + bomst.egenskapverdi(9407),  # Rushtid morgen, fra
                     },
                     {
-                        'not_under_three_ton': True,
+                        'car_type': 'big',
                         'price': bomst.egenskapverdi(9411),  # Rushtidstakst stor bil
                         'range': bomst.egenskapverdi(9407) + '-' + bomst.egenskapverdi(9408),  # Rushtid morgen, til
                     },
                     {
-                        'not_under_three_ton': True,
+                        'car_type': 'big',
                         'price': bomst.egenskapverdi(1819),  # Takst stor bil
                         'range': bomst.egenskapverdi(9408) + '-' + bomst.egenskapverdi(9405),  # Rushtid ettermiddag, fra
                     },
                     {
-                        'not_under_three_ton': True,
+                        'car_type': 'big',
                         'price': bomst.egenskapverdi(9411),  # Rushtidstakst stor bil
                         'range': bomst.egenskapverdi(9405) + '-' + bomst.egenskapverdi(9406),  # Rushtid ettermiddag, til
                     },
                     {
-                        'not_under_three_ton': True,
+                        'car_type': 'big',
                         'price': bomst.egenskapverdi(1819),  # Takst stor bil
                         'range': bomst.egenskapverdi(9406) + '-23:59',  # Rushtid ettermiddag, til
                     },
                     {
-                        'not_over_three_ton': True,
+                        'car_type': 'small',
                         'price': bomst.egenskapverdi(1820),  # Takst liten bil
                         'range': '00:00-' + bomst.egenskapverdi(9407),  # Rushtid morgen, fra
                     },
                     {
-                        'not_over_three_ton': True,
+                        'car_type': 'small',
                         'price': bomst.egenskapverdi(9410),  # Rushtidstakst liten bil
                         'range': bomst.egenskapverdi(9407) + '-' + bomst.egenskapverdi(9408),  # Rushtid morgen, til
                     },
                     {
-                        'not_over_three_ton': True,
+                        'car_type': 'small',
                         'price': bomst.egenskapverdi(1820),  # Takst liten bil
                         'range': bomst.egenskapverdi(9408) + '-' + bomst.egenskapverdi(9405),  # Rushtid ettermiddag, fra
                     },
                     {
-                        'not_over_three_ton': True,
+                        'car_type': 'small',
                         'price': bomst.egenskapverdi(9410),  # Rushtidstakst liten bil
                         'range': bomst.egenskapverdi(9405) + '-' + bomst.egenskapverdi(9406),  # Rushtid ettermiddag, til
                     },
                     {
-                        'not_over_three_ton': True,
+                        'car_type': 'small',
                         'price': bomst.egenskapverdi(1820),  # Takst liten bil
                         'range': bomst.egenskapverdi(9406) + '-23:59',  # Rushtid ettermiddag, til
                     },
