@@ -276,7 +276,7 @@ def get_tollroads():
         # print(vars(bomst));
         tmp = { 'felt' : ''}
 
-        tmp['id'] = bomst.id
+        tmp['boothid'] = bomst.id
         tmp['navn'] = bomst.egenskapverdi('Navn bomstasjon')
         tmp['bomid'] = bomst.egenskapverdi(9595)
         tmp['anlid'] = bomst.egenskapverdi(9596)
