@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='nvdbapi',
-    version='0.0.1',
+    version='0.0.2',
     url='http://github.com/HyreAS/nvdbapi/',
     license='MIT',
     maintainer='',
@@ -18,4 +18,7 @@ setup(
         'psycopg2==2.7.3.1',
         'pyproj==1.9.5.1',
     ],
+    dependency_links=[
+        "https://github.com/jswhit/pyproj/tarball/master#egg=pyproj-1.9.5.1",
+    ]
 )
